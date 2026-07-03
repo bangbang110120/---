@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日化美妆产业链分析平台 — 项目答辩素材</title>
+<style>
+/* ============================================================
+   COLOR SYSTEM — 中国石油大学（华东）配色
+   Primary:   #003B7B  石大深蓝
+   Secondary: #005BAC  海洋蓝
+   Accent:    #0088CC  亮蓝
+   Light:     #E8F0FA  浅蓝底
+   Dark:      #001F3F  极深蓝
+   White:     #FFFFFF
+   Gold:      #D4A843  点缀金
+   ============================================================ */
+:root {
+  --primary:   #003B7B;
+  --secondary: #005BAC;
+  --accent:    #0088CC;
+  --light:     #E8F0FA;
+  --lighter:   #F4F8FD;
+  --dark:      #001F3F;
+  --white:     #FFFFFF;
+  --gold:      #D4A843;
+  --text:      #1a1a2e;
+  --text-muted:#4a5568;
+  --gray-100:  #f7fafc;
+  --gray-200:  #edf2f7;
+  --gray-300:  #e2e8f0;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--gray-100);
+  color: var(--text);
+  line-height: 1.8;
+}
+
+/* HERO */
+.hero {
+  background: linear-gradient(135deg, var(--dark) 0%, var(--primary) 40%, var(--secondary) 100%);
+  color: var(--white);
+  padding: 80px 60px 60px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.hero h1 { font-size: 2.8em; font-weight: 800; letter-spacing: 2px; margin-bottom: 12px; }
+.hero .subtitle { font-size: 1.3em; opacity: 0.9; font-weight: 300; margin-bottom: 8px; }
+.hero .tags { margin-top: 24px; }
+.hero .tags span {
+  display: inline-block;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+  padding: 6px 20px; border-radius: 20px;
+  margin: 4px 6px; font-size: 0.9em;
+}
+
+/* NAV DOTS */
+.nav-dots {
+  position: fixed; right: 24px; top: 50%; transform: translateY(-50%);
+  z-index: 100; display: flex; flex-direction: column; gap: 12px;
+}
+.nav-dots a {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--gray-300); transition: all 0.3s;
+  text-decoration: none; display: block;
+}
+.nav-dots a:hover, .nav-dots a.active { background: var(--primary); transform: scale(1.4); }
+
+/* SECTIONS */
+.section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 64px 40px;
+  position: relative;
+}
+.section-alt {
+  background: var(--white);
+}
+
+.section-header {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 3px solid var(--primary);
+}
+.section-num {
+  background: var(--primary); color: var(--white);
+  width: 52px; height: 52px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4em; font-weight: 800; flex-shrink: 0;
+}
+.section-header h2 { font-size: 1.8em; color: var(--primary); margin: 0; }
+
+/* CARDS */
+.card-grid { display: grid; gap: 24px; margin: 28px 0; }
+.card-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.card-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.card-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+.card {
+  background: var(--white);
+  border-radius: 14px; padding: 28px;
+  box-shadow: 0 2px 12px rgba(0,31,63,0.06);
+  border: 1px solid var(--gray-200);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,31,63,0.1); }
+.card h3 { color: var(--primary); font-size: 1.15em; margin-bottom: 12px; }
+.card .card-icon { font-size: 2em; margin-bottom: 10px; }
+
+/* PROBLEM CARDS */
+.problem-card {
+  background: var(--white);
+  border-left: 5px solid var(--primary);
+  border-radius: 0 14px 14px 0;
+  padding: 24px 28px; margin: 16px 0;
+  box-shadow: 0 2px 8px rgba(0,31,63,0.05);
+}
+.problem-card h3 { color: var(--primary); font-size: 1.1em; }
+.problem-card .solution { color: #006d3a; font-weight: 600; margin-top: 8px; }
+.problem-card .effect { color: var(--text-muted); font-size: 0.95em; margin-top: 4px; }
+
+/* METRIC ROW */
+.metric-row { display: flex; gap: 20px; flex-wrap: wrap; margin: 24px 0; }
+.metric-box {
+  flex: 1; min-width: 160px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: var(--white); border-radius: 12px; padding: 24px 20px; text-align: center;
+}
+.metric-box .num { font-size: 2em; font-weight: 800; }
+.metric-box .label { font-size: 0.9em; opacity: 0.85; margin-top: 4px; }
+.metric-box.accent { background: linear-gradient(135deg, #006d3a, #00884a); }
+.metric-box.gold { background: linear-gradient(135deg, #8B6914, #B8860B); }
+
+/* TABLE */
+.data-table {
+  width: 100%; border-collapse: collapse; margin: 20px 0;
+  border-radius: 10px; overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,31,63,0.06);
+}
+.data-table thead { background: var(--primary); color: var(--white); }
+.data-table th { padding: 14px 16px; text-align: left; font-weight: 600; font-size: 0.95em; }
+.data-table td { padding: 12px 16px; border-bottom: 1px solid var(--gray-200); }
+.data-table tbody tr { background: var(--white); }
+.data-table tbody tr:nth-child(even) { background: var(--lighter); }
+.data-table tbody tr:hover { background: var(--light); }
+
+/* FLOW */
+.flow {
+  display: flex; align-items: center; justify-content: center;
+  gap: 0; flex-wrap: wrap; margin: 32px 0;
+}
+.flow-box {
+  background: var(--white); border: 2px solid var(--primary);
+  border-radius: 10px; padding: 16px 22px; text-align: center;
+  font-weight: 600; color: var(--primary); min-width: 100px;
+}
+.flow-arrow {
+  font-size: 1.4em; color: var(--primary); margin: 0 8px; font-weight: 800;
+}
+
+/* HIGHLIGHT BOX */
+.highlight {
+  background: var(--light);
+  border-radius: 12px; padding: 24px 28px;
+  border-left: 4px solid var(--accent);
+  margin: 20px 0;
+}
+.highlight h3 { color: var(--primary); margin-bottom: 8px; }
+
+/* TIMELINE */
+.timeline { position: relative; padding-left: 32px; margin: 24px 0; }
+.timeline::before {
+  content: ''; position: absolute; left: 8px; top: 0; bottom: 0;
+  width: 3px; background: var(--primary); border-radius: 2px;
+}
+.timeline-item { margin-bottom: 28px; position: relative; }
+.timeline-item::before {
+  content: ''; position: absolute; left: -28px; top: 6px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--primary); border: 3px solid var(--white);
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+/* TAG */
+.tag {
+  display: inline-block;
+  background: var(--primary); color: var(--white);
+  padding: 3px 14px; border-radius: 14px;
+  font-size: 0.82em; font-weight: 600; margin-right: 6px;
+}
+.tag-outline {
+  display: inline-block;
+  border: 1.5px solid var(--primary); color: var(--primary);
+  padding: 3px 14px; border-radius: 14px;
+  font-size: 0.82em; font-weight: 600; margin-right: 6px;
+}
+
+/* MODEL COMPARISON */
+.model-card {
+  background: var(--white);
+  border-radius: 12px; padding: 20px;
+  border: 1px solid var(--gray-200);
+  text-align: center;
+}
+.model-card .model-name { font-weight: 700; color: var(--primary); font-size: 1.1em; }
+.model-card .model-metric { font-size: 1.6em; font-weight: 800; color: #006d3a; margin: 6px 0; }
+.model-card .model-type { color: var(--text-muted); font-size: 0.85em; }
+
+/* STEP NUMBER */
+.step-circle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--primary); color: var(--white);
+  font-weight: 800; font-size: 1.2em; margin-right: 12px; flex-shrink: 0;
+}
+
+/* FOOTER */
+.footer {
+  background: var(--dark); color: rgba(255,255,255,0.8);
+  text-align: center; padding: 40px; font-size: 0.9em;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .card-grid.cols-2, .card-grid.cols-3, .card-grid.cols-4 { grid-template-columns: 1fr; }
+  .section { padding: 40px 20px; }
+  .hero { padding: 50px 24px 40px; }
+  .hero h1 { font-size: 2em; }
+  .nav-dots { display: none; }
+}
+
+/* PRINT */
+@media print {
+  .nav-dots { display: none; }
+  .section { page-break-inside: avoid; padding: 32px 0; }
+  .hero { page-break-after: avoid; }
+  body { font-size: 13px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     NAVIGATION DOTS
+     ============================================================ -->
+<div class="nav-dots">
+  <a href="#bg" title="业务背景"></a>
+  <a href="#data" title="数据分析"></a>
+  <a href="#model" title="过程建模"></a>
+  <a href="#viz" title="可视化分析"></a>
+  <a href="#innovation" title="项目创新"></a>
+  <a href="#summary" title="项目总结"></a>
+</div>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<header class="hero" id="top">
+  <h1>日化美妆产业链分析平台</h1>
+  <p class="subtitle">基于多模型融合的产业数据智能分析与决策系统</p>
+  <div class="tags">
+    <span>📊 数据分析</span>
+    <span>🤖 机器学习</span>
+    <span>📈 可视化</span>
+    <span>💡 智能决策</span>
+  </div>
+</header>
+
+<!-- ============================================================
+     一、业务背景
+     ============================================================ -->
+<div class="section" id="bg">
+  <div class="section-header">
+    <div class="section-num">01</div>
+    <h2>业务背景 — 问题定义与解决思路</h2>
+  </div>
+
+  <div class="highlight">
+    <h3>📌 项目定位</h3>
+    <p>本项目面向<strong>日化美妆行业</strong>的中小型商家与品牌运营方，利用真实电商订单数据（天猫、淘宝双十一、日化批发渠道），通过机器学习与数据可视化技术，构建覆盖<strong>「诊断 → 预测 → 优化 → 决策」</strong>全链路的智能分析平台。</p>
+  </div>
+
+  <h3 style="color:var(--primary); margin:36px 0 20px;">🎯 核心业务问题与解决方案</h3>
+
+  <div class="problem-card">
+    <h3>❌ 问题一：退款率居高不下</h3>
+    <p>电商订单退款率直接影响利润，传统人工经验无法在订单产生时预判退款风险。</p>
+    <p class="solution">✅ 解决方案：训练 XGBoost 退款预测分类器，对每笔订单实时评估退款概率。</p>
+    <p class="effect">📊 效果：模型 AUC 达到 <strong>0.984</strong>，准确率 <strong>99.7%</strong>，可精准识别高危订单并前置干预。</p>
+  </div>
+
+  <div class="problem-card">
+    <h3>❌ 问题二：折扣策略缺乏数据支撑</h3>
+    <p>大促期间（双十一/618）折扣力度靠经验拍板，缺乏「折扣 → 销量 → 利润」的量化分析。</p>
+    <p class="solution">✅ 解决方案：构建价格弹性模型（XGBoost 回归），模拟不同折扣率下的销量与利润变化曲线。</p>
+    <p class="effect">📊 效果：可自动计算最优折扣点，支持「利润优先 / 销量优先 / 平衡模式」三种策略切换。</p>
+  </div>
+
+  <div class="problem-card">
+    <h3>❌ 问题三：库存管理盲目</h3>
+    <p>哪些商品该补货、哪些该清仓、补多少量——全凭经验，导致滞销积压或热销断货。</p>
+    <p class="solution">✅ 解决方案：销量预测 + 商品热度分级 + 智能补货建议三模型联动。</p>
+    <p class="effect">📊 效果：自动计算安全库存和补货量，支持 30/60/90 天多周期销量预测。</p>
+  </div>
+
+  <div class="problem-card">
+    <h3>❌ 问题四：套餐搭配依赖人工经验</h3>
+    <p>「搭配套餐」是提升客单价的有效手段，但传统做法靠运营人员手工组合，缺乏数据依据。</p>
+    <p class="solution">✅ 解决方案：构建品类购买共现矩阵 + K-Means 聚类，自动发现高频搭配组合。</p>
+    <p class="effect">📊 效果：基于 <strong>7,667</strong> 个多品订单生成 20 个数据驱动的套餐建议，支持度量化排序。</p>
+  </div>
+
+  <div class="problem-card">
+    <h3>❌ 问题五：区域拓展缺少方向</h3>
+    <p>线下地推团队不知道哪些省份/城市存在「有需求但无覆盖」的空白市场。</p>
+    <p class="solution">✅ 解决方案：RandomForest 区域销售潜力预测 + 空白市场扫描。</p>
+    <p class="effect">📊 效果：输出各商品-省份维度的潜力评分，标记高潜力未覆盖区域。</p>
+  </div>
+
+  <div class="problem-card">
+    <h3>❌ 问题六：用户价值评估模糊</h3>
+    <p>不清楚哪些客户是高价值客户，无法进行分层精细化运营。</p>
+    <p class="solution">✅ 解决方案：RFM 模型（最近消费/频次/金额）自动分群 + 客户画像。</p>
+    <p class="effect">📊 效果：自动识别「重要价值客户」「重要发展客户」等 8 类客群，输出差异化运营策略。</p>
+  </div>
+</div>
+
+<!-- ============================================================
+     二、数据分析
+     ============================================================ -->
+<div class="section section-alt" id="data">
+  <div class="section-header">
+    <div class="section-num">02</div>
+    <h2>数据分析 — 数据获取、结构与探索</h2>
+  </div>
+
+  <h3 style="color:var(--primary);">📥 数据获取</h3>
+  <div class="card-grid cols-3" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-icon">🛒</div>
+      <h3>天猫订单报告</h3>
+      <p>来源：品牌方天猫旗舰店后台导出<br>
+      记录数：<strong>28,010</strong> 条<br>
+      字段：订单编号、总金额、实付金额、收货地址、创建/付款时间、退款金额</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎯</div>
+      <h3>双十一淘宝美妆数据</h3>
+      <p>来源：淘宝/天猫 2025 双十一公开数据<br>
+      记录数：<strong>27,598</strong> 条<br>
+      字段：更新时间、商品ID、标题、价格、销量、评论数、品牌</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏭</div>
+      <h3>日化销售数据</h3>
+      <p>来源：日化品牌经销商系统<br>
+      销售订单：<strong>31,452</strong> 条<br>
+      商品信息：<strong>122</strong> 个 SKU<br>
+      包含 12 个商品小类、3 个商品大类</p>
+    </div>
+  </div>
+
+  <h3 style="color:var(--primary); margin-top:36px;">📊 数据集结构</h3>
+  <table class="data-table">
+    <thead>
+      <tr><th>数据集</th><th>Sheet / 表</th><th>行数</th><th>核心字段</th><th>时间范围</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>tmall_order_report.xlsx</strong></td><td>tmall_order_report</td><td>28,010</td><td>订单编号、总金额、实付金额、收货地址、创建/付款时间、退款金额</td><td>2025 全年</td></tr>
+      <tr><td><strong>双十一淘宝美妆数据.xlsx</strong></td><td>双十一淘宝美妆数据</td><td>27,598</td><td>update_time、title、price、sale_count、comment_count、品牌</td><td>2025.11.05-11.14</td></tr>
+      <tr><td rowspan="2"><strong>日化.xlsx</strong></td><td>销售订单表</td><td>31,452</td><td>订单编码、客户编码、商品编号、订购数量、金额、省份/地市</td><td rowspan="2">2025 年</td></tr>
+      <tr><td>商品信息表</td><td>122</td><td>商品编号、商品名称、商品小类、商品大类、销售单价</td></tr>
+    </tbody>
+  </table>
+
+  <div class="metric-row">
+    <div class="metric-box">
+      <div class="num">86,060</div>
+      <div class="label">总数据记录数</div>
+    </div>
+    <div class="metric-box">
+      <div class="num">3</div>
+      <div class="label">异构数据源</div>
+    </div>
+    <div class="metric-box">
+      <div class="num">12</div>
+      <div class="label">商品品类</div>
+    </div>
+    <div class="metric-box accent">
+      <div class="num">7</div>
+      <div class="label">核心业务指标</div>
+    </div>
+  </div>
+
+  <h3 style="color:var(--primary); margin-top:36px;">🔍 数据探索 (EDA) 方法</h3>
+  <div class="card-grid cols-2">
+    <div class="card">
+      <h3>📋 数据质量检查</h3>
+      <ul>
+        <li>缺失值检测与填充（数值用 0 / 中位数，分类用众数）</li>
+        <li>数据类型转换（金额→float，日期→datetime）</li>
+        <li>异常值识别（负金额、未来日期、零销量商品）</li>
+        <li>重复订单去重</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>📈 探索性分析</h3>
+      <ul>
+        <li>分布分析：价格分布、金额分布、销量分布</li>
+        <li>时间趋势：日/周/月维度的订单量与金额变化</li>
+        <li>地域分布：省份-地市-区县的销售额热力</li>
+        <li>关联分析：品牌-品类-价格的交叉关系</li>
+        <li>RFM 分群：最近购买/频率/金额三维度客户分层</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="highlight" style="margin-top:24px;">
+    <h3>💡 关键发现（从数据探索中获得）</h3>
+    <ol>
+      <li><strong>二八定律显著</strong>：约 20% 的商品贡献 80% 的销售额，长尾商品需要不同策略</li>
+      <li><strong>价格敏感度因品类而异</strong>：面膜类弹性系数 > 2（高敏感），精华类 < 1（低敏感）</li>
+      <li><strong>地区差异明显</strong>：东部沿海省份 GMV 占 65%，中西部存在大量空白市场</li>
+      <li><strong>共现购买模式</strong>：面膜+面霜、精华+眼霜是最高频的搭配组合（支持度 42.6%）</li>
+      <li><strong>退款集中在低单价商品</strong>：金额 < 50 元的订单退款率是高价订单的 3 倍</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ============================================================
+     三、过程建模
+     ============================================================ -->
+<div class="section" id="model">
+  <div class="section-header">
+    <div class="section-num">03</div>
+    <h2>过程建模 — 解决问题的建模思路</h2>
+  </div>
+
+  <h3 style="color:var(--primary);">🏗️ 建模策略总览</h3>
+  <p style="margin-bottom:20px;">每个业务问题训练 <strong>6-8 种算法</strong>进行横向对比，择优部署。覆盖树模型、线性模型、深度学习三大类。</p>
+
+  <table class="data-table">
+    <thead>
+      <tr><th style="width:15%">业务场景</th><th style="width:15%">问题类型</th><th>特征工程</th><th style="width:18%">候选算法</th><th style="width:14%">最佳模型</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>退款预测</strong></td>
+        <td>二分类</td>
+        <td>总金额、实付金额、下单时段、是否周末、付款延迟、金额段、地区退款率</td>
+        <td>XGBoost / RF / LightGBM / GB / LR</td>
+        <td>🏆 <strong>XGBoost</strong><br>AUC 0.984</td>
+      </tr>
+      <tr>
+        <td><strong>价格弹性</strong></td>
+        <td>回归</td>
+        <td>价格、销量、评论数、品牌编码、品类、折扣率、价格段、时间特征</td>
+        <td>XGBoost / RF / LightGBM / GB / Ridge / LR</td>
+        <td>🏆 <strong>XGBoost</strong><br>R² 0.91</td>
+      </tr>
+      <tr>
+        <td><strong>销量预测</strong></td>
+        <td>回归</td>
+        <td>历史销量、价格趋势、库存水平、季节特征、品类、品牌、30/60/90天滚动</td>
+        <td>XGBoost / RF / LightGBM / GB / LSTM / LR</td>
+        <td>🏆 <strong>XGBoost</strong><br>最优 R²</td>
+      </tr>
+      <tr>
+        <td><strong>商品热度</strong></td>
+        <td>多分类</td>
+        <td>销量、评论数、价格、平均销售额、覆盖省份、客户数、近30/60/90天销量</td>
+        <td>XGBoost / RF / GB / K-Means / LR</td>
+        <td>🏆 <strong>XGBoost</strong><br>Accuracy 最优</td>
+      </tr>
+      <tr>
+        <td><strong>区域潜力</strong></td>
+        <td>回归</td>
+        <td>省份编码、品类编码、历史销量、客户密度、价格段、季节性因子</td>
+        <td>RandomForest / XGBoost / GB / LR</td>
+        <td>🏆 <strong>RandomForest</strong></td>
+      </tr>
+      <tr>
+        <td><strong>区域库存</strong></td>
+        <td>回归</td>
+        <td>历史库存、销量趋势、补货周期、区域需求指数、价格因子</td>
+        <td>RandomForest / XGBoost / GB / MLP / LR</td>
+        <td>🏆 <strong>RandomForest</strong></td>
+      </tr>
+      <tr>
+        <td><strong>支付转化</strong></td>
+        <td>二分类</td>
+        <td>订单金额、时段、地址、用户历史转化率、商品品类</td>
+        <td>LR / RF / XGBoost / LightGBM / GB / DNN</td>
+        <td>🏆 <strong>LogisticRegression</strong></td>
+      </tr>
+      <tr>
+        <td><strong>品类聚类</strong></td>
+        <td>无监督</td>
+        <td>品类共现频率向量（N×N 共现矩阵每行作为特征）</td>
+        <td>K-Means (肘部法则自动选 K)</td>
+        <td>🏆 <strong>K-Means</strong><br>K=4 簇</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 style="color:var(--primary); margin-top:36px;">🔄 建模流程</h3>
+  <div class="flow">
+    <div class="flow-box">原始数据</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">数据清洗<br>缺失值/异常值</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">特征工程<br>编码/缩放/衍生</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">训练集 80%</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">多模型训练<br>6-8种算法对比</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">测试集 20%<br>评估择优</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">模型部署<br>.joblib 持久化</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">Streamlit<br>交互推理</div>
+  </div>
+
+  <h3 style="color:var(--primary); margin-top:36px;">🛠️ 特征工程核心技术</h3>
+  <div class="card-grid cols-3">
+    <div class="card">
+      <h3>🔢 数值特征</h3>
+      <ul>
+        <li>金额、价格 → log 变换 + 标准化</li>
+        <li>销量 → 30/60/90 天滚动窗口</li>
+        <li>时间差 → 付款延迟小时、距今天数</li>
+        <li>比率 → 销量环比、退款率、转化率</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>🏷️ 类别特征</h3>
+      <ul>
+        <li>省份/地市 → LabelEncoder</li>
+        <li>商品品类 → LabelEncoder + OneHot</li>
+        <li>品牌 → 频率编码（高频品牌保留）</li>
+        <li>商品大类 → OrdinalEncoder</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>🧬 衍生特征</h3>
+      <ul>
+        <li>共现矩阵 → K-Means 聚类特征</li>
+        <li>RFM 分值 → 客户分层标签</li>
+        <li>金额段 → 分箱离散化</li>
+        <li>是否周末/时段 → 时间周期</li>
+        <li>地区退款率 → 聚合统计特征</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 style="color:var(--primary); margin-top:36px;">📊 模型评估体系</h3>
+  <div class="card-grid cols-3">
+    <div class="card">
+      <h3>分类模型</h3>
+      <ul>
+        <li>Accuracy（准确率）</li>
+        <li>Precision（精确率）</li>
+        <li>Recall（召回率）</li>
+        <li>F1 Score（调和均值）</li>
+        <li>AUC-ROC（区分能力）</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>回归模型</h3>
+      <ul>
+        <li>R² Score（拟合优度）</li>
+        <li>MAE（平均绝对误差）</li>
+        <li>MSE（均方误差）</li>
+        <li>RMSE（均方根误差）</li>
+        <li>MAPE（百分比误差）</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>聚类模型</h3>
+      <ul>
+        <li>Inertia（簇内平方和）</li>
+        <li>Silhouette Score</li>
+        <li>肘部法则自动选 K</li>
+        <li>簇内共现强度</li>
+        <li>PCA 降维可视化验证</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     四、可视化分析
+     ============================================================ -->
+<div class="section section-alt" id="viz">
+  <div class="section-header">
+    <div class="section-num">04</div>
+    <h2>可视化分析 — 数据洞察与交互呈现</h2>
+  </div>
+
+  <h3 style="color:var(--primary);">📊 可视化技术栈</h3>
+  <div class="card-grid cols-3">
+    <div class="card">
+      <div class="card-icon">📈</div>
+      <h3>Plotly</h3>
+      <p>交互式图表引擎：散点图、柱状图、热力图、地图、双轴图、漏斗图、饼图、箱线图</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🗺️</div>
+      <h3>GeoJSON + Scattergeo</h3>
+      <p>中国省份边界线 + 气泡标记，双重编码展示区域销售分布</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎨</div>
+      <h3>Matplotlib</h3>
+      <p>聚类 PCA 散点图、肘部法则图、共现热力图等静态模型图表</p>
+    </div>
+  </div>
+
+  <h3 style="color:var(--primary); margin-top:36px;">📋 可视化仪表盘总览（9 个 Tab）</h3>
+  <table class="data-table">
+    <thead>
+      <tr><th style="width:8%">序号</th><th>模块</th><th>核心图表</th><th>分析目的</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>📋 数据概览</td><td>KPI 指标卡、数据表预览、缺失值统计</td><td>数据质量总览与基础统计</td></tr>
+      <tr><td>2</td><td>🏷️ 品牌竞争力</td><td>品牌 GMV 排行柱状图、价格-销量矩阵散点图、品牌集中度曲线</td><td>品牌格局与竞争定位</td></tr>
+      <tr><td>3</td><td>🏭 渠道健康度</td><td>中国省份边界地图+气泡、地市覆盖矩阵</td><td>区域覆盖与渠道效率诊断</td></tr>
+      <tr><td>4</td><td>🛒 零售效率</td><td>价格-销量双轴趋势图、价格弹性曲线、品类销量分布</td><td>定价效果与品类生命周期</td></tr>
+      <tr><td>5</td><td>👤 用户画像</td><td>RFM 分层饼图、复购率趋势、地区退款率排行</td><td>客户价值分层与行为洞察</td></tr>
+      <tr><td>6</td><td>🔗 联动洞察</td><td>退款特征重要性图、区域潜力热力分布、空白市场表格</td><td>ML 模型辅助业务决策</td></tr>
+      <tr><td>7</td><td>📊 销售策略</td><td>库存健康仪表盘、热度预测分布、补货建议表</td><td>库存优化与销量预测</td></tr>
+      <tr><td>8</td><td>🎁 套餐推荐</td><td>聚类 PCA 散点图、共现热力图、套餐价格对比柱状图</td><td>数据驱动套餐组合</td></tr>
+      <tr><td>9</td><td>💰 折扣策略</td><td>折扣-收入/利润双曲线图、销量分布柱状图、策略建议卡片</td><td>折扣效果量化与优化</td></tr>
+    </tbody>
+  </table>
+
+  <div class="highlight" style="margin-top:24px;">
+    <h3>🗺️ 亮点：中国省份地图可视化</h3>
+    <p>加载 <strong>china_provinces_geo.json</strong>（DataV GeoJSON 格式），使用 Plotly Scattergeo 叠加省份边界线与销售气泡标记，实现<strong>地理信息 + 业务数据</strong>双重编码。气泡大小代表销售额、颜色代表客户密度，一眼识别高价值区域与空白市场。</p>
+  </div>
+</div>
+
+<!-- ============================================================
+     五、项目创新
+     ============================================================ -->
+<div class="section" id="innovation">
+  <div class="section-header">
+    <div class="section-num">05</div>
+    <h2>项目创新 — 技术亮点与差异化</h2>
+  </div>
+
+  <div class="card-grid cols-2">
+    <div class="card">
+      <div class="card-icon">🥇</div>
+      <h3>创新一：多模型融合择优机制</h3>
+      <p>每个业务问题训练 <strong>6-8 种算法</strong>（XGBoost、LightGBM、RandomForest、GradientBoosting、LogisticRegression、Ridge、MLP、LSTM），通过统一评估指标自动对比，选择最优模型部署。<strong>不是单一模型套用所有场景</strong>，而是为每个问题匹配最佳算法。</p>
+      <p style="margin-top:8px;"><span class="tag">对比实验</span> <span class="tag-outline">自动择优</span> <span class="tag-outline">70+ 模型文件</span></p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🥈</div>
+      <h3>创新二：实时交互式 ML 推理</h3>
+      <p>所有模型在 Streamlit 中<strong>实时加载并执行推理</strong>，用户调整参数（折扣率、库存阈值、支持度）后预测结果即时更新。<strong>区别于静态报表</strong>，这是一个可交互的决策辅助系统。</p>
+      <p style="margin-top:8px;"><span class="tag">实时推理</span> <span class="tag-outline">参数可调</span> <span class="tag-outline">即时反馈</span></p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🥉</div>
+      <h3>创新三：购买共现驱动的套餐推荐</h3>
+      <p>构建 <strong>N×N 品类共现矩阵</strong>，以共现频率向量为特征进行 K-Means 聚类，在簇内按共现强度生成套餐组合。替代传统人工搭配，<strong>每个套餐都有支持度和共现次数作为量化依据</strong>。</p>
+      <p style="margin-top:8px;"><span class="tag">共现矩阵</span> <span class="tag-outline">K-Means 聚类</span> <span class="tag-outline">量化推荐</span></p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏅</div>
+      <h3>创新四：空白市场智能扫描</h3>
+      <p>用 RandomForest 回归预测商品在各地区的销售潜力，将<strong>「高潜力 + 低覆盖」</strong>的地区标记为空白市场。为地推团队提供<strong>可执行的开荒列表</strong>，而非泛泛的市场分析报告。</p>
+      <p style="margin-top:8px;"><span class="tag">RF 回归</span> <span class="tag-outline">潜力预测</span> <span class="tag-outline">地推指导</span></p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎖️</div>
+      <h3>创新五：从诊断到决策的完整闭环</h3>
+      <p>平台覆盖 <strong>「数据概览 → 诊断分析 → 预测建模 → 策略建议」</strong>完整链路。每个分析模块<strong>不仅展示数据和图表，更输出可执行的商家赋能建议</strong>——例如具体的补货数量、推荐折扣率、套餐组合方案。</p>
+      <p style="margin-top:8px;"><span class="tag">闭环系统</span> <span class="tag-outline">可执行建议</span> <span class="tag-outline">端到端</span></p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏆</div>
+      <h3>创新六：异构数据融合分析</h3>
+      <p>将 <strong>天猫 B2C 订单</strong>、<strong>淘宝双十一大促</strong>、<strong>日化批发渠道</strong>三种异构数据源统一处理，在同一个平台中进行跨数据联动分析。不同数据源揭示不同业务维度的洞察。</p>
+      <p style="margin-top:8px;"><span class="tag">3 数据源</span> <span class="tag-outline">异构融合</span> <span class="tag-outline">跨维度</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     六、项目总结
+     ============================================================ -->
+<div class="section section-alt" id="summary">
+  <div class="section-header">
+    <div class="section-num">06</div>
+    <h2>项目总结 — 成果、价值与展望</h2>
+  </div>
+
+  <h3 style="color:var(--primary);">📊 项目关键数据</h3>
+  <div class="metric-row">
+    <div class="metric-box">
+      <div class="num">86,060</div>
+      <div class="label">数据记录数</div>
+    </div>
+    <div class="metric-box">
+      <div class="num">8</div>
+      <div class="label">ML 模型场景</div>
+    </div>
+    <div class="metric-box">
+      <div class="num">70+</div>
+      <div class="label">训练模型文件</div>
+    </div>
+    <div class="metric-box accent">
+      <div class="num">9</div>
+      <div class="label">分析功能模块</div>
+    </div>
+    <div class="metric-box gold">
+      <div class="num">6</div>
+      <div class="label">解决业务问题</div>
+    </div>
+  </div>
+
+  <h3 style="color:var(--primary); margin-top:36px;">🎯 项目成果</h3>
+  <div class="card-grid cols-2">
+    <div class="card">
+      <h3>✅ 技术成果</h3>
+      <ul>
+        <li>训练并对比 <strong>70+ 个 ML 模型</strong>，覆盖 8 种算法</li>
+        <li>退款预测 AUC <strong>0.984</strong>，准确率 <strong>99.7%</strong></li>
+        <li>聚类分析发现 <strong>4 个</strong>差异化品类簇</li>
+        <li>生成 <strong>20 个</strong>数据驱动的套餐建议</li>
+        <li>构建 <strong>9 个 Tab</strong>的交互式分析仪表盘</li>
+        <li>覆盖二分类、回归、聚类、RFM 四种建模范式</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>✅ 业务成果</h3>
+      <ul>
+        <li>退款预测：可识别高危订单，前置客服干预降低退款率</li>
+        <li>折扣优化：量化折扣→销量→利润关系，找到最优折扣点</li>
+        <li>库存管理：自动计算安全库存和补货量，减少积压/断货</li>
+        <li>套餐推荐：共现驱动的科学搭配，替代人工拍脑袋</li>
+        <li>区域拓展：RF 预测识别高潜力空白市场</li>
+        <li>用户运营：RFM 分层指导差异化客户策略</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 style="color:var(--primary); margin-top:36px;">🛠️ 技术栈总览</h3>
+  <div class="flow" style="flex-wrap:wrap; gap:12px;">
+    <span class="tag">Python 3.12</span>
+    <span class="tag-outline">Streamlit</span>
+    <span class="tag-outline">Pandas</span>
+    <span class="tag-outline">NumPy</span>
+    <span class="tag-outline">Scikit-learn</span>
+    <span class="tag">XGBoost</span>
+    <span class="tag-outline">LightGBM</span>
+    <span class="tag-outline">Plotly</span>
+    <span class="tag-outline">Matplotlib</span>
+    <span class="tag">Joblib</span>
+    <span class="tag-outline">OpenPyXL</span>
+    <span class="tag-outline">GeoJSON</span>
+  </div>
+
+  <h3 style="color:var(--primary); margin-top:36px;">🔮 未来展望</h3>
+  <div class="timeline">
+    <div class="timeline-item">
+      <h4>📅 短期 (1-3个月)</h4>
+      <ul>
+        <li>接入实时数据流（API 对接天猫/淘宝开放平台），替代手动 Excel 导入</li>
+        <li>增加 A/B 测试框架，验证模型建议的实际效果</li>
+        <li>优化模型推理速度，支持批量预测</li>
+      </ul>
+    </div>
+    <div class="timeline-item">
+      <h4>📅 中期 (3-6个月)</h4>
+      <ul>
+        <li>引入 NLP 技术分析用户评论情感，辅助商品优化</li>
+        <li>增加时间序列预测（Prophet / Transformer），提升销量预测精度</li>
+        <li>构建推荐系统（协同过滤 + 内容推荐），实现个性化商品推荐</li>
+      </ul>
+    </div>
+    <div class="timeline-item">
+      <h4>📅 长期 (6-12个月)</h4>
+      <ul>
+        <li>将平台从单机 Streamlit 升级为 Web 服务（FastAPI + React）</li>
+        <li>引入 AutoML 自动调参 + 模型自动更新机制</li>
+        <li>扩展至更多行业（食品饮料、母婴用品、家居日用）</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="highlight" style="margin-top:32px;">
+    <h3>💬 一句话总结</h3>
+    <p style="font-size:1.1em; font-weight:600; color:var(--primary);">
+      本项目构建了一个 <strong>「数据驱动、模型择优、交互决策」</strong>的日化美妆产业链智能分析平台，
+      以 8 大 ML 模型覆盖 6 个核心业务场景，实现从数据到决策的完整闭环，
+      为中小型电商商家提供了可落地的、可量化的智能运营解决方案。
+    </p>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>日化美妆产业链分析平台 · L4 系统化答辩项目 · 中国石油大学（华东）</p>
+  <p style="margin-top:6px; opacity:0.6;">基于 Streamlit + XGBoost + Scikit-learn + Plotly 构建</p>
+</div>
+
+<!-- SMOOTH SCROLL + NAV HIGHLIGHT -->
+<script>
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelector(a.getAttribute('href')).scrollIntoView({ behavior:'smooth' });
+  });
+});
+
+// Highlight active nav dot
+const sections = document.querySelectorAll('.section, .hero');
+const dots = document.querySelectorAll('.nav-dots a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 200) current = s.id || 'top';
+  });
+  dots.forEach(d => d.classList.toggle('active', d.getAttribute('href') === '#'+current));
+});
+</script>
+</body>
+</html>
