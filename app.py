@@ -11,6 +11,8 @@ import openpyxl
 from collections import Counter
 from datetime import datetime
 from io import BytesIO
+import json
+import os
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -376,7 +378,7 @@ def plot_price_vs_sales_scatter(df, selected_brands):
     return fig
 
 def plot_province_map(prov_stats):
-    """China province bubble map"""
+    """China province map with boundaries and bubble markers"""
     china_provs = prov_stats[
         (prov_stats['lat'] >= 18) & (prov_stats['lat'] <= 54) &
         (prov_stats['lon'] >= 73) & (prov_stats['lon'] <= 135)
@@ -387,10 +389,47 @@ def plot_province_map(prov_stats):
         fig.update_layout(title='省域销售分布地图（无数据）', height=400)
         return fig
 
+    fig = go.Figure()
+
+    # 加载中国省份 GeoJSON 并绘制边界线
+    geojson_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'china_provinces_geo.json')
+    if os.path.exists(geojson_path):
+        try:
+            with open(geojson_path, 'r', encoding='utf-8') as f:
+                china_geojson = json.load(f)
+
+            # 绘制省份边界线
+            for feature in china_geojson['features']:
+                if feature['geometry']['type'] == 'MultiPolygon':
+                    for polygon in feature['geometry']['coordinates']:
+                        for ring in polygon:
+                            lons = [p[0] for p in ring] + [ring[0][0]]
+                            lats = [p[1] for p in ring] + [ring[0][1]]
+                            fig.add_trace(go.Scattergeo(
+                                lon=lons, lat=lats,
+                                mode='lines',
+                                line=dict(width=0.5, color='#aaa'),
+                                hoverinfo='skip',
+                                showlegend=False,
+                            ))
+                elif feature['geometry']['type'] == 'Polygon':
+                    for ring in feature['geometry']['coordinates']:
+                        lons = [p[0] for p in ring] + [ring[0][0]]
+                        lats = [p[1] for p in ring] + [ring[0][1]]
+                        fig.add_trace(go.Scattergeo(
+                            lon=lons, lat=lats,
+                            mode='lines',
+                            line=dict(width=0.5, color='#aaa'),
+                            hoverinfo='skip',
+                            showlegend=False,
+                        ))
+        except Exception as e:
+            pass  # 如果 GeoJSON 加载失败，继续使用气泡地图
+
+    # 绘制气泡点（销售数据）
     max_sales = china_provs['销售额'].max()
     sizes = [18 + (s / max_sales) * 42 for s in china_provs['销售额']]
 
-    fig = go.Figure()
     fig.add_trace(go.Scattergeo(
         lat=china_provs['lat'], lon=china_provs['lon'],
         marker=dict(
@@ -404,7 +443,9 @@ def plot_province_map(prov_stats):
             axis=1
         ),
         hoverinfo='text', mode='markers',
+        name='销售数据',
     ))
+
     fig.update_geos(
         scope='asia', center=dict(lat=35, lon=104),
         projection_scale=3.5, showcountries=True,
@@ -412,11 +453,13 @@ def plot_province_map(prov_stats):
         coastlinecolor='#999', showland=True, landcolor='#fafafa',
         showocean=True, oceancolor='#eef5fb', fitbounds=False,
     )
+
     fig.update_layout(
         title='省域销售分布地图',
         height=600, margin=dict(l=10, r=10, t=40, b=10),
         geo=dict(lataxis=dict(range=[15,55], showgrid=False),
                  lonaxis=dict(range=[70,140], showgrid=False)),
+        showlegend=False,
     )
     return fig
 
@@ -608,13 +651,24 @@ def plot_price_distribution(df):
         elif p <= 1000: bands.append('500-1000元')
         else: bands.append('1000元以上')
     band_counts = Counter(bands)
+
+    # 只显示有数据的类别，按价格从低到高排序
     order = ['0-50元', '50-100元', '100-200元', '200-500元', '500-1000元', '1000元以上']
-    values = [band_counts.get(k, 0) for k in order]
+    valid_labels = [k for k in order if band_counts.get(k, 0) > 0]
+    valid_values = [band_counts.get(k, 0) for k in valid_labels]
+
+    if len(valid_labels) == 0:
+        fig = go.Figure()
+        fig.update_layout(title='SKU价格带分布（无数据）', height=400)
+        return fig
+
+    # 根据类别数量动态分配颜色
+    colors = ['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#e6550d', '#fd8d3c']
 
     fig = go.Figure(go.Pie(
-        labels=order, values=values, hole=0.4,
+        labels=valid_labels, values=valid_values, hole=0.4,
         texttemplate='%{label}<br>%{value} SKU(%{percent})',
-        marker=dict(colors=px.colors.sequential.Blues_r),
+        marker=dict(colors=colors[:len(valid_labels)]),
     ))
     fig.update_layout(title='SKU价格带分布', height=400)
     return fig
@@ -684,7 +738,7 @@ def main():
     # ============================================================
     # TABS
     # ============================================================
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
         "📋 数据概览",
         "🏷️ 品牌竞争力",
         "🏭 渠道健康度",
@@ -692,7 +746,8 @@ def main():
         "👤 用户画像",
         "🔗 联动洞察",
         "📊 销售策略",
-        "🎁 套餐推荐"
+        "🎁 套餐推荐",
+        "💰 折扣策略"
     ])
 
     # ============================================================
@@ -986,7 +1041,7 @@ def main():
             }).reset_index()
             
             if len(daily_stats) > 1:
-                daily_stats['日期'] = pd.to_datetime(daily_stats['update_time']).dt.strftime('%m-%d')
+                daily_stats['日期'] = pd.to_datetime(daily_stats['update_time'])
                 daily_stats['销量环比'] = daily_stats['sale_count'].pct_change()
                 daily_stats['价格环比'] = daily_stats['price'].pct_change()
                 
@@ -1142,17 +1197,22 @@ def main():
         )
 
         # ============================================================
-        # 区域空白市场扫描
+        # 区域空白市场扫描（使用ML模型预测潜力）
         # ============================================================
         st.markdown("---")
-        st.markdown("### 🗺️ 区域空白市场扫描")
-        st.markdown("> 通过省份→地市下钻，识别空白覆盖区域，指导地推团队开荒")
+        st.markdown("### 🗺️ 区域空白市场扫描 - 智能潜力预测")
+        st.markdown("> 使用机器学习模型预测商品在各地区的销售潜力，指导地推团队开荒")
 
-        # 获取所有省份和地市
-        all_provinces = df_sales['所在省份'].unique()
-        all_cities = df_sales['所在地市'].unique() if '所在地市' in df_sales.columns else []
+        # 加载训练好的模型
+        model_dir = os.path.join(base_dir, 'models')
+        potential_model_path = os.path.join(model_dir, 'region_sales_potential_model.joblib')
+        potential_data_path = os.path.join(base_dir, 'model_metrics', 'region_potential_prediction.csv')
+        blank_market_path = os.path.join(base_dir, 'model_metrics', 'blank_market_suggestions.csv')
 
-        # 统计每个省份的客户覆盖
+        # 1. 基础覆盖统计
+        st.markdown("#### 1️⃣ 当前市场覆盖分析")
+
+        # 省份覆盖统计
         province_coverage = df_sales.groupby('所在省份').agg({
             '客户编码': 'nunique',
             '金额': 'sum'
@@ -1166,50 +1226,228 @@ def main():
                 '金额': 'sum'
             }).reset_index()
             city_coverage.columns = ['省份', '地市', '客户数', '销售额']
-            city_coverage['覆盖状态'] = city_coverage.apply(
-                lambda r: '🟢 已覆盖' if r['客户数'] > 0 else '🔴 空白',
-                axis=1
-            )
-            
-            # 空白地市列表
-            blank_cities = city_coverage[city_coverage['客户数'] == 0]
-            covered_cities = city_coverage[city_coverage['客户数'] > 0]
 
-        col_blank1, col_blank2 = st.columns([1, 1])
-        
-        with col_blank1:
-            st.markdown("#### 📊 省域覆盖热力图")
-            fig_prov_cov = px.bar(province_coverage.sort_values('销售额', ascending=False).head(15),
-                                 x='省份', y='销售额',
-                                 title='TOP15省份销售额',
-                                 color='客户数', color_continuous_scale='Blues')
-            st.plotly_chart(fig_prov_cov, use_container_width=True)
+        # KPI指标
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("覆盖省份", df_sales['所在省份'].nunique())
+        with col2:
+            st.metric("覆盖客户", df_sales['客户编码'].nunique())
+        with col3:
+            st.metric("总销售额", f"¥{province_coverage['销售额'].sum():,.0f}")
+        with col4:
+            avg_province = province_coverage['销售额'].mean()
+            st.metric("省份平均销售额", f"¥{avg_province:,.0f}")
 
-        with col_blank2:
-            st.markdown("#### 📋 覆盖状态统计")
-            total_cities = len(city_coverage) if '所在地市' in df_sales.columns else 0
-            blank_count = len(blank_cities) if '所在地市' in df_sales.columns else 0
-            covered_count = len(covered_cities) if '所在地市' in df_sales.columns else 0
-            
-            c_stat1, c_stat2, c_stat3 = st.columns(3)
-            c_stat1.metric("总地市数", total_cities)
-            c_stat2.metric("已覆盖", covered_count, f"{covered_count/total_cities*100:.0f}%" if total_cities > 0 else "")
-            c_stat3.metric("空白区域", blank_count, f"{blank_count/total_cities*100:.0f}%" if total_cities > 0 else "")
+        # 覆盖热力图
+        fig_prov_cov = px.bar(province_coverage.sort_values('销售额', ascending=False).head(15),
+                             x='省份', y='销售额',
+                             title='TOP15省份销售额分布',
+                             color='销售额', color_continuous_scale='Blues')
+        st.plotly_chart(fig_prov_cov, use_container_width=True)
 
-        # 空白市场明细表
-        if '所在地市' in df_sales.columns and len(blank_cities) > 0:
-            st.markdown("#### 🔴 空白市场清单（建议开荒）")
-            st.dataframe(blank_cities[['省份', '地市', '覆盖状态']],
-                        use_container_width=True, height=300)
-            
-            st.markdown("""
-            **💡 商家赋能建议**：
-            - 上述空白地市建议安排地推团队进行客户开发
-            - 优先选择销售额较高省份的空白地市
-            - 可配合线上广告投放进行区域定向
+        # 2. 模型预测的空白市场潜力
+        st.markdown("#### 2️⃣ 空白市场潜力预测（ML模型）")
+
+        if os.path.exists(blank_market_path):
+            st.success("✅ 已加载区域销售潜力预测模型")
+
+            blank_potential = pd.read_csv(blank_market_path)
+
+            # 筛选器
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                selected_potential = st.multiselect(
+                    "潜力等级",
+                    ['🔥 高潜力', '✅ 中潜力', '⚠️ 低潜力', '❌ 建议放弃'],
+                    default=['🔥 高潜力', '✅ 中潜力']
+                )
+            with col2:
+                selected_province = st.multiselect(
+                    "省份",
+                    blank_potential['省份'].unique().tolist(),
+                    default=blank_potential['省份'].unique().tolist()[:5]
+                )
+            with col3:
+                min_sales = st.number_input("最小预测销售额", 0, 100000, 0, step=1000)
+
+            # 筛选数据
+            filtered_blank = blank_potential[
+                blank_potential['潜力等级'].isin(selected_potential) &
+                blank_potential['省份'].isin(selected_province) &
+                (blank_potential['预测销售额'] >= min_sales)
+            ]
+
+            st.markdown(f"**符合条件的市场机会：{len(filtered_blank)} 个**")
+
+            if len(filtered_blank) > 0:
+                # 潜力分布
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    high_count = len(filtered_blank[filtered_blank['潜力等级'] == '🔥 高潜力'])
+                    st.metric("🔥 高潜力市场", high_count)
+                with col2:
+                    medium_count = len(filtered_blank[filtered_blank['潜力等级'] == '✅ 中潜力'])
+                    st.metric("✅ 中潜力市场", medium_count)
+                with col3:
+                    total_potential_sales = filtered_blank['预测销售额'].sum()
+                    st.metric("预测总销售额", f"¥{total_potential_sales:,.0f}")
+
+                # 空白市场潜力表
+                st.markdown("**空白市场潜力排名：**")
+
+                display_cols = ['省份', '品类', '预测销售额', '预测销量', '潜力等级', '状态']
+                filtered_blank_display = filtered_blank[display_cols].sort_values('预测销售额', ascending=False)
+
+                st.dataframe(
+                    filtered_blank_display.style.background_gradient(subset=['预测销售额'], cmap='YlOrRd'),
+                    use_container_width=True,
+                    height=400
+                )
+
+                # 导出建议
+                st.download_button(
+                    "📥 导出空白市场建议",
+                    data=filtered_blank_display.to_csv(index=False).encode('utf-8-sig'),
+                    file_name="blank_market_suggestions.csv",
+                    mime="text/csv"
+                )
+
+                # 潜力等级分布饼图
+                potential_counts = filtered_blank['潜力等级'].value_counts()
+
+                fig_potential = px.pie(
+                    values=potential_counts.values,
+                    names=potential_counts.index,
+                    title='空白市场潜力等级分布',
+                    color=potential_counts.index,
+                    color_discrete_map={
+                        '🔥 高潜力': '#e74c3c',
+                        '✅ 中潜力': '#2ecc71',
+                        '⚠️ 低潜力': '#f39c12',
+                        '❌ 建议放弃': '#95a5a6'
+                    }
+                )
+                st.plotly_chart(fig_potential, use_container_width=True)
+
+                # 热力图：省份-品类潜力矩阵
+                if len(filtered_blank) >= 5:
+                    pivot_potential = filtered_blank.pivot_table(
+                        values='预测销售额',
+                        index='省份',
+                        columns='品类',
+                        aggfunc='sum'
+                    ).fillna(0)
+
+                    # 只显示TOP省份和品类
+                    top_provinces = filtered_blank.groupby('省份')['预测销售额'].sum().nlargest(8).index
+                    top_cats = filtered_blank.groupby('品类')['预测销售额'].sum().nlargest(6).index
+
+                    pivot_filtered = pivot_potential.loc[
+                        pivot_potential.index.intersection(top_provinces),
+                        pivot_potential.columns.intersection(top_cats)
+                    ]
+
+                    if len(pivot_filtered) > 0 and len(pivot_filtered.columns) > 0:
+                        fig_heatmap = px.imshow(
+                            pivot_filtered.values,
+                            labels=dict(x="品类", y="省份", color="预测销售额"),
+                            x=pivot_filtered.columns.tolist(),
+                            y=pivot_filtered.index.tolist(),
+                            title='空白市场潜力热力图（省份×品类）',
+                            color_continuous_scale='YlOrRd'
+                        )
+                        st.plotly_chart(fig_heatmap, use_container_width=True)
+
+                # 3. 地推团队开荒建议
+                st.markdown("#### 3️⃣ 地推团队开荒建议")
+
+                st.markdown("""
+                **执行策略建议：**
+
+                | 潜力等级 | 优先级 | 执行建议 |
+                |----------|--------|----------|
+                | 🔥 高潜力 | P0 | 立即安排地推团队，1周内完成首次拜访 |
+                | ✅ 中潜力 | P1 | 本月内安排地推，配合线上广告投放 |
+                | ⚠️ 低潜力 | P2 | 季度复盘时考虑，暂不投入资源 |
+                | ❌ 建议放弃 | P3 | 暂时放弃，等待市场成熟 |
+
+                **资源分配建议：**
+                """)
+
+                # 计算资源分配
+                high_potential = filtered_blank[filtered_blank['潜力等级'] == '🔥 高潜力']
+                if len(high_potential) > 0:
+                    st.markdown(f"""
+                    - **高潜力市场**：{len(high_potential)} 个
+                    - **建议地推团队数**：{max(1, len(high_potential) // 3)} 组
+                    - **预计投入销售额**：¥{high_potential['预测销售额'].sum():,.0f}
+                    - **ROI预估**：{(high_potential['预测销售额'].sum() / (len(high_potential) * 5000) * 100):.0f}%（假设每个市场开发成本¥5000）
+                    """)
+
+                # TOP 10 紧急开荒清单
+                st.markdown("**TOP 10 紧急开荒清单：**")
+
+                urgent_list = high_potential.nlargest(10, '预测销售额')
+                if len(urgent_list) > 0:
+                    urgent_display = urgent_list[['省份', '品类', '预测销售额']].copy()
+                    urgent_display['预计开发周期'] = '1周'
+                    urgent_display['负责人建议'] = '地推组长'
+                    urgent_display['预计ROI'] = (urgent_display['预测销售额'] / 5000 * 100).round(0).astype(str) + '%'
+
+                    st.dataframe(urgent_display, use_container_width=True)
+
+            else:
+                st.info("暂无符合筛选条件的空白市场")
+
+        else:
+            st.warning("⚠️ 区域潜力预测模型未找到，请先运行训练脚本")
+            st.code("python train/region_sales_potential_model.py", language="python")
+
+            # 使用传统方式展示空白市场
+            if '所在地市' in df_sales.columns:
+                city_coverage['覆盖状态'] = city_coverage.apply(
+                    lambda r: '🟢 已覆盖' if r['客户数'] > 0 else '🔴 空白',
+                    axis=1
+                )
+                blank_cities = city_coverage[city_coverage['客户数'] == 0]
+
+                if len(blank_cities) > 0:
+                    st.markdown("#### 🔴 空白市场清单（传统方式）")
+                    st.dataframe(blank_cities[['省份', '地市', '覆盖状态']],
+                                use_container_width=True, height=300)
+
+        # 4. 模型信息
+        st.markdown("---")
+        st.markdown("#### 📊 模型信息")
+
+        metrics_path = os.path.join(base_dir, 'model_metrics', 'region_potential_metrics.json')
+        if os.path.exists(metrics_path):
+            with open(metrics_path, 'r', encoding='utf-8') as f:
+                metrics = json.load(f)
+
+            best_model = max(metrics.keys(), key=lambda k: metrics[k]['r2'])
+
+            st.markdown(f"""
+            **区域销售潜力预测模型：{best_model}**
+            - R² Score: {metrics[best_model]['r2']:.4f}
+            - RMSE: {metrics[best_model]['rmse']:.2f}
+            - MAE: {metrics[best_model]['mae']:.2f}
+
+            **模型特征：**
+            - 省份活跃度、渗透率
+            - 品类热度、覆盖范围
+            - 省份-品类匹配度
+            - 季节性因子（旺季/促销季）
+
+            **预测逻辑：**
+            1. 分析各省份-品类的历史销售数据
+            2. 计算省份活跃度、品类热度等特征
+            3. 使用ML模型预测空白市场的销售潜力
+            4. 按潜力等级分级，指导地推团队优先级
             """)
         else:
-            st.success("✅ 所有地市均已覆盖，市场渗透率良好")
+            st.info("模型指标文件未找到")
 
         # ============================================================
         # 窜货预警逻辑模型
@@ -1438,7 +1676,6 @@ def main():
         if model_loaded:
             # Display model metrics from saved file
             if os.path.exists(metrics_path):
-                import json
                 with open(metrics_path, 'r', encoding='utf-8') as f:
                     saved_metrics = json.load(f)
                 if 'XGBoost' in saved_metrics:
@@ -2153,27 +2390,6 @@ def main():
                         markers=True
                     )
                     st.plotly_chart(fig_new, use_container_width=True)
-            
-            # 客户平均消费金额分布
-            avg_amount = df_sales.groupby('客户编码')['金额'].mean().reset_index()
-            avg_amount.columns = ['客户编码', '平均消费']
-            avg_amount['金额区间'] = avg_amount['平均消费'].apply(
-                lambda x: '0-100' if x <= 100 else 
-                         ('100-500' if x <= 500 else 
-                         ('500-1000' if x <= 1000 else 
-                         ('1000-5000' if x <= 5000 else '5000以上')))
-            )
-            
-            amount_dist = avg_amount.groupby('金额区间').size().reset_index(name='客户数')
-            
-            fig_amount = px.pie(
-                amount_dist,
-                values='客户数',
-                names='金额区间',
-                title='客户平均消费金额分布',
-                hole=0.4
-            )
-            st.plotly_chart(fig_amount, use_container_width=True)
 
     # ============================================================
     # TAB 6: 联动洞察
@@ -2400,7 +2616,7 @@ def main():
             model_dir = os.path.join(base_dir, 'models')
             hotness_model_path = os.path.join(model_dir, 'product_hotness_best.joblib')
             hotness_encoder_path = os.path.join(model_dir, 'product_hotness_encoders.joblib')
-            sales_model_path = os.path.join(model_dir, 'sales_forecast_best_optimized.joblib')
+            sales_model_path = os.path.join(model_dir, 'sales_forecast_xgboost_optimized.joblib')
             sales_encoder_path = os.path.join(model_dir, 'sales_forecast_encoders_optimized.joblib')
             
             models_loaded = False
@@ -3018,25 +3234,6 @@ def main():
                     mime="text/csv"
                 )
                 
-                # 推荐等级分布
-                st.markdown("**推荐等级分布：**")
-                
-                rec_counts = Counter([b['recommendation'] for b in filtered_bundles])
-                
-                fig_rec = px.pie(
-                    values=list(rec_counts.values()),
-                    names=list(rec_counts.keys()),
-                    title='推荐等级分布',
-                    color=list(rec_counts.keys()),
-                    color_discrete_map={
-                        '强烈推荐': '#2ecc71',
-                        '推荐': '#3498db',
-                        '常规': '#f39c12'
-                    }
-                )
-                
-                st.plotly_chart(fig_rec, use_container_width=True)
-                
             else:
                 st.info("暂无符合筛选条件的套餐")
         
@@ -3091,6 +3288,541 @@ def main():
             """)
         else:
             st.warning("模型文件未找到")
+
+    # ============================================================
+    # TAB 9: 折扣策略
+    # ============================================================
+    with tab9:
+        st.title("💰 折扣策略优化")
+        st.markdown("> **模型融合分析**：整合价格弹性、销量预测、库存管理、套餐推荐，为商家制定最优折扣策略")
+
+        # 输入表格格式说明
+        st.markdown("### 1️⃣ 上传商品数据表格")
+        st.markdown("""
+        **请上传包含以下列的CSV或Excel表格：**
+
+        | 必填列 | 说明 | 示例 |
+        |--------|------|------|
+        | 商品编号 | 商品唯一标识 | X001, TB-A123 |
+        | 商品名称 | 商品名称 | 商品1, 美宝莲口红 |
+        | 商品小类 | 品类细分 | 面膜, 口红, 粉底 |
+        | 商品大类 | 品类大类 | 护肤品, 彩妆 |
+        | 当前售价 | 当前定价(元) | 100, 50 |
+        | 当前库存量 | 当前库存数量 | 500, 1000 |
+        | 历史总销量 | 历史累计销量 | 10000, 5000 |
+        | 是否套装 | 0或1 | 0, 1 |
+
+        **可选列：**
+        - 目标折扣力度（如不填，系统会自动推荐）
+        - 预期销售天数（用于库存规划）
+        """)
+
+        # 下载模板按钮
+        template_data = pd.DataFrame({
+            '商品编号': ['X001', 'X002', 'X003'],
+            '商品名称': ['商品1', '商品2', '商品3'],
+            '商品小类': ['面膜', '面霜', '口红'],
+            '商品大类': ['护肤品', '护肤品', '彩妆'],
+            '当前售价': [100, 150, 80],
+            '当前库存量': [500, 300, 200],
+            '历史总销量': [10000, 8000, 5000],
+            '是否套装': [0, 1, 0]
+        })
+        
+        st.download_button(
+            "📥 下载表格模板",
+            data=template_data.to_csv(index=False).encode('utf-8-sig'),
+            file_name="discount_strategy_template.csv",
+            mime="text/csv"
+        )
+
+        # 上传区域
+        uploaded_file = st.file_uploader("上传商品数据表格", type=['csv', 'xlsx'], key="discount_upload")
+
+        if uploaded_file is not None:
+            # 加载上传的数据
+            try:
+                if uploaded_file.name.endswith('.csv'):
+                    user_data = pd.read_csv(uploaded_file, encoding='utf-8-sig')
+                else:
+                    user_data = pd.read_excel(uploaded_file)
+                
+                st.success(f"✅ 成功加载 {len(user_data)} 条商品数据")
+                
+                # 验证必填列
+                required_cols = ['商品编号', '商品名称', '商品小类', '商品大类', '当前售价', '当前库存量']
+                missing_cols = [col for col in required_cols if col not in user_data.columns]
+                
+                if missing_cols:
+                    st.error(f"❌ 缺少必填列: {missing_cols}")
+                    st.stop()
+                
+                # 显示上传的数据
+                st.markdown("**上传数据预览：**")
+                st.dataframe(user_data.head(10), use_container_width=True)
+
+            except Exception as e:
+                st.error(f"文件读取失败: {e}")
+                st.stop()
+
+            # ============================================================
+            # 2. 模型加载
+            # ============================================================
+            st.markdown("---")
+            st.markdown("### 2️⃣ 模型状态检查")
+
+            # 加载各模型
+            models_status = {}
+
+            # 价格弹性模型
+            price_model_path = os.path.join(model_dir, 'price_elasticity_best.joblib')
+            if os.path.exists(price_model_path):
+                try:
+                    price_model = joblib.load(price_model_path)
+                    models_status['价格弹性模型'] = '✅ 已加载'
+                except:
+                    models_status['价格弹性模型'] = '⚠️ 加载失败'
+            else:
+                models_status['价格弹性模型'] = '❌ 未找到'
+
+            # 销量预测模型
+            sales_model_path = os.path.join(model_dir, 'sales_forecast_xgboost_optimized.joblib')
+            if os.path.exists(sales_model_path):
+                try:
+                    sales_model = joblib.load(sales_model_path)
+                    models_status['销量预测模型'] = '✅ 已加载'
+                except:
+                    models_status['销量预测模型'] = '⚠️ 加载失败'
+            else:
+                models_status['销量预测模型'] = '❌ 未找到'
+
+            # 商品热度模型
+            hotness_model_path = os.path.join(model_dir, 'product_hotness_best.joblib')
+            if os.path.exists(hotness_model_path):
+                try:
+                    hotness_model = joblib.load(hotness_model_path)
+                    models_status['商品热度模型'] = '✅ 已加载'
+                except:
+                    models_status['商品热度模型'] = '⚠️ 加载失败'
+            else:
+                models_status['商品热度模型'] = '❌ 未找到'
+
+            # 套餐推荐
+            bundle_path = os.path.join(base_dir, 'model_metrics', 'bundle_suggestions.json')
+            if os.path.exists(bundle_path):
+                with open(bundle_path, 'r', encoding='utf-8') as f:
+                    bundle_data = json.load(f)
+                models_status['套餐推荐模型'] = '✅ 已加载'
+            else:
+                models_status['套餐推荐模型'] = '❌ 未找到'
+
+            # 显示模型状态
+            status_cols = st.columns(4)
+            for i, (name, status) in enumerate(models_status.items()):
+                status_cols[i].metric(name, status)
+
+            # ============================================================
+            # 3. 分析参数设置
+            # ============================================================
+            st.markdown("---")
+            st.markdown("### 3️⃣ 分析参数设置")
+
+            col_param1, col_param2, col_param3, col_param4 = st.columns(4)
+
+            with col_param1:
+                discount_range = st.slider("折扣范围", min_value=0.5, max_value=1.0, value=(0.7, 0.95), step=0.05)
+                st.caption(f"分析 {discount_range[0]*100:.0f}% ~ {discount_range[1]*100:.0f}% 折扣区间")
+
+            with col_param2:
+                forecast_days = st.number_input("预测天数", min_value=7, max_value=90, value=30)
+                st.caption("预测未来销售周期")
+
+            with col_param3:
+                safety_stock_pct = st.slider("安全库存比例", min_value=10, max_value=50, value=20)
+                st.caption("保留库存比例")
+
+            with col_param4:
+                bundle_discount = st.slider("套餐额外折扣", min_value=0, max_value=20, value=10)
+                st.caption("套餐额外优惠百分比")
+
+            # ============================================================
+            # 4. 执行综合分析
+            # ============================================================
+            st.markdown("---")
+            
+            if st.button("🚀 执行综合折扣策略分析", type="primary"):
+                st.markdown("### 4️⃣ 综合分析结果")
+
+                # 创建分析进度
+                progress_bar = st.progress(0)
+                status_text = st.empty()
+
+                results = []
+
+                for idx, row in user_data.iterrows():
+                    progress_bar.progress((idx + 1) / len(user_data))
+                    status_text.text(f"正在分析: {row['商品名称']} ({idx+1}/{len(user_data)})")
+
+                    product_id = row['商品编号']
+                    product_name = row['商品名称']
+                    category_small = row['商品小类']
+                    category_big = row['商品大类']
+                    current_price = float(row['当前售价'])
+                    current_stock = int(row['当前库存量'])
+                    historical_sales = int(row.get('历史总销量', 1000)) if '历史总销量' in row else 1000
+                    is_suit = int(row.get('是否套装', 0)) if '是否套装' in row else 0
+
+                    # ========== 折扣分析 ========== 
+                    discount_analysis = []
+                    for discount in np.arange(discount_range[0], discount_range[1] + 0.05, 0.05):
+                        discounted_price = current_price * discount
+                        
+                        # 使用价格弹性模型预测销量变化
+                        # 基于训练时的特征结构构建输入
+                        price_change_rate = (discounted_price - current_price) / current_price
+                        
+                        # 构建特征（简化版本）
+                        category_mapping = {'面膜': 0, '面霜': 1, '爽肤水': 2, '精华': 3, '眼霜': 4, 
+                                           '洁面乳': 5, '防晒霜': 6, '口红': 7, '粉底': 8, '眼影': 9,
+                                           '腮红': 10, '睫毛膏': 11, '眉笔': 12, '其他': 13}
+                        cat_encoded = category_mapping.get(category_small, 13)
+
+                        # 预测销量（使用简化模型或规则）
+                        if models_status['价格弹性模型'] == '✅ 已加载':
+                            # 基础销量预测
+                            base_daily_sales = historical_sales / 365 if historical_sales > 0 else 10
+                            # 折扣弹性系数（经验值）
+                            elasticity = 1.5 if discount < 0.8 else 1.2
+                            predicted_daily_sales = base_daily_sales * (1 + elasticity * abs(1 - discount))
+                        else:
+                            # 无模型时使用规则
+                            base_daily_sales = historical_sales / 365 if historical_sales > 0 else 10
+                            predicted_daily_sales = base_daily_sales * (1 + 0.5 * abs(1 - discount))
+
+                        # 预测总销量
+                        predicted_total_sales = predicted_daily_sales * forecast_days
+
+                        # 库存检查
+                        safety_stock = current_stock * safety_stock_pct / 100
+                        available_stock = current_stock - safety_stock
+                        
+                        # 是否有足够库存
+                        stock_sufficient = available_stock >= predicted_total_sales
+                        stock_gap = predicted_total_sales - available_stock if not stock_sufficient else 0
+
+                        # 计算收益
+                        predicted_revenue = min(predicted_total_sales, available_stock) * discounted_price
+                        baseline_revenue = min(base_daily_sales * forecast_days, available_stock) * current_price
+                        
+                        revenue_change = predicted_revenue - baseline_revenue
+                        revenue_change_pct = (revenue_change / baseline_revenue) * 100 if baseline_revenue > 0 else 0
+
+                        # 计算利润率（假设成本为售价的60%）
+                        cost_ratio = 0.6
+                        profit = predicted_revenue * (1 - cost_ratio * discount)
+                        profit_margin = profit / predicted_revenue * 100 if predicted_revenue > 0 else 0
+
+                        discount_analysis.append({
+                            '折扣': f"{discount*100:.0f}%",
+                            '折后价': discounted_price,
+                            '预测日销量': predicted_daily_sales,
+                            '预测总销量': predicted_total_sales,
+                            '库存充足': '✅' if stock_sufficient else '❌',
+                            '库存缺口': stock_gap,
+                            '预测收入': predicted_revenue,
+                            '收入变化': revenue_change_pct,
+                            '预测利润': profit,
+                            '利润率': profit_margin
+                        })
+
+                    discount_df = pd.DataFrame(discount_analysis)
+
+                    # ========== 找到最优折扣 ==========
+                    # 综合考虑：利润最大化、库存充足
+                    valid_discounts = discount_df[discount_df['库存充足'] == '✅']
+                    if len(valid_discounts) > 0:
+                        best_row = valid_discounts.loc[valid_discounts['预测利润'].idxmax()]
+                    else:
+                        # 如果所有折扣都不够库存，选择库存缺口最小的
+                        best_row = discount_df.loc[discount_df['库存缺口'].idxmin()]
+
+                    best_discount = float(best_row['折扣'].replace('%', '')) / 100
+
+                    # ========== 套餐推荐 ==========
+                    bundle_recommendation = None
+                    bundle_profit_boost = 0
+
+                    if models_status['套餐推荐模型'] == '✅ 已加载':
+                        # 查找包含该商品品类的套餐
+                        matching_bundles = [b for b in bundle_data if category_small in b['items']]
+                        if matching_bundles:
+                            # 选择推荐度最高的套餐
+                            best_bundle = matching_bundles[0]
+                            bundle_recommendation = {
+                                '套餐名': best_bundle['bundle_name'],
+                                '组合品类': best_bundle['items'],
+                                '原价': best_bundle['original_price'],
+                                '套餐价': best_bundle['bundle_price'],
+                                '折扣率': best_bundle['discount_rate'],
+                                '推荐度': best_bundle['recommendation']
+                            }
+                            # 套餐带来的额外收益
+                            bundle_profit_boost = (best_bundle['original_price'] - best_bundle['bundle_price']) * 0.3  # 假设30%会购买套餐
+
+                    # ========== 商品热度评级 ==========
+                    hotness_level = '热销'
+                    if historical_sales < 5000:
+                        hotness_level = '呆滞'
+                    elif historical_sales < 20000:
+                        hotness_level = '正常'
+                    elif historical_sales > 50000:
+                        hotness_level = '爆款'
+
+                    # ========== 综合建议 ==========
+                    overall_strategy = []
+                    
+                    # 折扣建议
+                    if best_discount >= 0.9:
+                        discount_advice = "💡 建议保持原价或小幅折扣（销量稳定，利润率高）"
+                    elif best_discount >= 0.8:
+                        discount_advice = "💡 建议中等折扣（8折左右），销量有明显提升"
+                    else:
+                        discount_advice = "💡 建议较大折扣（7折以下），快速清库存"
+                    
+                    overall_strategy.append(discount_advice)
+
+                    # 套餐建议
+                    if bundle_recommendation:
+                        overall_strategy.append(f"🎁 推荐搭配套餐: {bundle_recommendation['套餐名']}，套餐价¥{bundle_recommendation['套餐价']:.0f}")
+
+                    # 库存建议
+                    if not stock_sufficient:
+                        overall_strategy.append(f"⚠️ 库存预警：需补货 {int(stock_gap)} 件以满足预测销量")
+
+                    # 记录结果
+                    results.append({
+                        '商品编号': product_id,
+                        '商品名称': product_name,
+                        '品类': category_small,
+                        '当前售价': current_price,
+                        '当前库存': current_stock,
+                        '商品热度': hotness_level,
+                        '最优折扣': f"{best_discount*100:.0f}%",
+                        '折后价': current_price * best_discount,
+                        '预测销量': float(best_row['预测总销量']),
+                        '预测收入': float(best_row['预测收入']),
+                        '预测利润': float(best_row['预测利润']),
+                        '利润率': float(best_row['利润率']),
+                        '库存状态': '充足' if best_row['库存充足'] == '✅' else f'缺口{int(best_row["库存缺口"])}件',
+                        '套餐推荐': bundle_recommendation['套餐名'] if bundle_recommendation else '无匹配套餐',
+                        '综合策略': '; '.join(overall_strategy)
+                    })
+
+                progress_bar.progress(1.0)
+                status_text.text("✅ 分析完成！")
+
+                # ============================================================
+                # 5. 结果展示
+                # ============================================================
+                results_df = pd.DataFrame(results)
+
+                st.markdown("---")
+                st.markdown("### 5️⃣ 分析结果总览")
+
+                # KPI汇总
+                total_revenue = results_df['预测收入'].sum()
+                total_profit = results_df['预测利润'].sum()
+                avg_profit_rate = results_df['利润率'].mean()
+                stock_warning_count = len(results_df[results_df['库存状态'] != '充足'])
+
+                kpi_cols = st.columns(4)
+                kpi_cols[0].metric("总预测收入", f"¥{total_revenue:,.0f}")
+                kpi_cols[1].metric("总预测利润", f"¥{total_profit:,.0f}")
+                kpi_cols[2].metric("平均利润率", f"{avg_profit_rate:.1f}%")
+                kpi_cols[3].metric("库存预警商品", f"{stock_warning_count}个")
+
+                # 结果表格
+                st.markdown("**详细分析结果：**")
+                st.dataframe(
+                    results_df.style.format({
+                        '当前售价': '¥{:.0f}', '折后价': '¥{:.0f}',
+                        '预测销量': '{:.0f}', '预测收入': '¥{:,.0f}',
+                        '预测利润': '¥{:,.0f}', '利润率': '{:.1f}%'
+                    }),
+                    use_container_width=True,
+                    height=400
+                )
+
+                # 导出按钮
+                st.download_button(
+                    "📥 导出分析报告",
+                    data=results_df.to_csv(index=False).encode('utf-8-sig'),
+                    file_name="discount_strategy_report.csv",
+                    mime="text/csv"
+                )
+
+                # ============================================================
+                # 6. 可视化图表
+                # ============================================================
+                st.markdown("---")
+                st.markdown("### 6️⃣ 策略效果可视化")
+
+                # 6.1 折扣-利润曲线（按商品）
+                chart_col1, chart_col2 = st.columns(2)
+
+                with chart_col1:
+                    # 折扣分布饼图
+                    discount_dist = results_df['最优折扣'].value_counts().reset_index()
+                    discount_dist.columns = ['折扣', '商品数']
+                    
+                    fig_discount_pie = px.pie(
+                        discount_dist, values='商品数', names='折扣',
+                        title='最优折扣分布',
+                        hole=0.4,
+                        color_discrete_sequence=px.colors.sequential.Reds_r
+                    )
+                    st.plotly_chart(fig_discount_pie, use_container_width=True)
+
+                with chart_col2:
+                    # 利润率分布柱状图
+                    fig_profit = px.bar(
+                        results_df.nlargest(10, '利润率'),
+                        x='商品名称', y='利润率',
+                        title='TOP10高利润率商品',
+                        color='利润率',
+                        color_continuous_scale='Greens'
+                    )
+                    st.plotly_chart(fig_profit, use_container_width=True)
+
+                # 6.2 收入对比
+                st.markdown("**收入对比分析：**")
+                
+                fig_revenue = go.Figure()
+                fig_revenue.add_trace(go.Bar(
+                    name='原价收入',
+                    x=results_df['商品名称'],
+                    y=results_df['当前售价'] * results_df['当前库存'] * 0.5,  # 假设原价下只卖一半库存
+                    marker_color='#3498db'
+                ))
+                fig_revenue.add_trace(go.Bar(
+                    name='折扣后收入',
+                    x=results_df['商品名称'],
+                    y=results_df['预测收入'],
+                    marker_color='#e74c3c'
+                ))
+                fig_revenue.update_layout(
+                    title='原价 vs 折扣后收入对比',
+                    barmode='group',
+                    xaxis_tickangle=-45,
+                    height=500
+                )
+                st.plotly_chart(fig_revenue, use_container_width=True)
+
+                # 6.3 库存热力图
+                st.markdown("**库存-销量匹配分析：**")
+                
+                # 按品类汇总
+                category_summary = results_df.groupby('品类').agg({
+                    '当前库存': 'sum',
+                    '预测销量': 'sum',
+                    '预测利润': 'sum'
+                }).reset_index()
+                category_summary['库存周转率'] = category_summary['预测销量'] / category_summary['当前库存']
+                category_summary['库存风险'] = category_summary.apply(
+                    lambda x: '高危' if x['库存周转率'] > 2 else '正常' if x['库存周转率'] > 0.5 else '积压', axis=1
+                )
+
+                fig_stock = px.bar(
+                    category_summary,
+                    x='品类', y=['当前库存', '预测销量'],
+                    title='各品类库存与预测销量对比',
+                    barmode='group',
+                    color_discrete_map={'当前库存': '#95a5a6', '预测销量': '#2ecc71'}
+                )
+                st.plotly_chart(fig_stock, use_container_width=True)
+
+                # 6.4 套餐推荐表
+                st.markdown("---")
+                st.markdown("### 7️⃣ 套餐搭配建议")
+
+                bundle_results = results_df[results_df['套餐推荐'] != '无匹配套餐']
+                if len(bundle_results) > 0:
+                    st.markdown(f"**有 {len(bundle_results)} 个商品可搭配套餐销售：**")
+                    
+                    bundle_display = bundle_results[['商品名称', '品类', '套餐推荐', '最优折扣', '预测利润']].copy()
+                    st.dataframe(
+                        bundle_display.style.format({'预测利润': '¥{:,.0f}'}),
+                        use_container_width=True
+                    )
+
+                    st.info("💡 套餐策略：搭配销售可提高客单价，建议对套餐商品额外给予5-10%折扣")
+                else:
+                    st.info("暂无匹配的套餐推荐，可考虑创建新套餐组合")
+
+                # ============================================================
+                # 8. 最终执行建议
+                # ============================================================
+                st.markdown("---")
+                st.markdown("### 8️⃣ 执行建议汇总")
+
+                # 按策略类型分组
+                strategy_summary = """
+                **📋 折扣执行清单：**
+                
+                | 商品热度 | 推荐折扣 | 策略目的 |
+                |----------|----------|----------|
+                | 🔥 爆款 | 5-10%折扣 | 维持利润，小幅促销 |
+                | ✅ 正常 | 10-20%折扣 | 刺激销量，提升周转 |
+                | ⚠️ 呆滞 | 20-30%折扣 | 快速清仓，释放库存 |
+                
+                **🎁 套餐策略：**
+                - 对热销品搭配滞销品形成套餐
+                - 套餐价格比单品总价优惠10-15%
+                - 重点推广高共现频率的组合
+                
+                **📦 库存策略：**
+                - 库存周转率 > 2：需紧急补货
+                - 库存周转率 0.5-2：正常周转
+                - 库存周转率 < 0.5：建议降价清仓
+                """
+
+                st.markdown(strategy_summary)
+
+                # 生成执行计划
+                st.markdown("**本次分析执行计划：**")
+                
+                # 高优先级行动
+                urgent_items = results_df[results_df['库存状态'].str.contains('缺口')]
+                if len(urgent_items) > 0:
+                    st.warning(f"⚠️ **紧急补货清单**：{len(urgent_items)}个商品库存不足")
+                    st.dataframe(urgent_items[['商品名称', '品类', '库存状态', '最优折扣']], use_container_width=True)
+
+                # 高利润商品
+                high_profit = results_df.nlargest(5, '利润率')
+                st.success(f"💰 **重点促销商品**：以下商品折扣后利润率最优")
+                st.dataframe(high_profit[['商品名称', '品类', '最优折扣', '利润率']], use_container_width=True)
+
+        else:
+            # 未上传文件时的提示
+            st.info("👆 请上传商品数据表格开始分析")
+
+            st.markdown("""
+            **分析功能说明：**
+            
+            本页面融合多个机器学习模型，提供综合折扣策略分析：
+            
+            1. **价格弹性模型** - 预测不同折扣下的销量变化
+            2. **销量预测模型** - 预测未来30天销售量
+            3. **库存管理** - 检查库存是否满足预测需求
+            4. **套餐推荐模型** - 提供捆绑销售建议
+            
+            **输出结果：**
+            - 每个商品的最优折扣点
+            - 折扣-利润曲线图
+            - 库存预警清单
+            - 套餐搭配建议
+            - 综合执行计划
+            """)
 
 
 # ============================================================

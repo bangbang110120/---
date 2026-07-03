@@ -40,7 +40,10 @@
       "Bash(awk -F',' 'NR>1 && $13 ~ /偏低/' inventory_stock.csv)",
       "Bash(awk -F',' 'NR>1 && $13 ~ /正常/' inventory_stock.csv)",
       "Bash(awk -F',' 'NR>1 && $13 ~ /充足/' inventory_stock.csv)",
-      "Bash(awk -F',' 'NR>1 {cats[$4]++} END {for\\(c in cats\\) print cats[c], c}' inventory_stock.csv)"
+      "Bash(awk -F',' 'NR>1 {cats[$4]++} END {for\\(c in cats\\) print cats[c], c}' inventory_stock.csv)",
+      "Bash(python generate_price_list.py)",
+      "Bash(awk -F',' '$8==1 {print $1\",\"$2\",\"$3\",\"$5}' product_price_list.csv)",
+      "Bash(git add *)"
     ]
   }
 }
